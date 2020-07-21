@@ -1,0 +1,48 @@
+# Christopher Evans
+# Planned Publish to Github: 7/21/2020
+# Base Round for crowdsourcing
+
+# Original website: https://blog.mturk.com/tutorial-a-beginners-guide-to-crowdsourcing-ml-training-data-with-python-and-mturk-d8df4bdf2977
+# All identifying information has been taken out
+# Currently awaiting approval for new requirements
+# New update will be underway in August 01, 2020 for creating an improved form
+
+import boto3
+mturk = boto3.client('mturk',
+   aws_access_key_id = "PASTE_YOUR_IAM_USER_ACCESS_KEY",
+   aws_secret_access_key = "PASTE_YOUR_IAM_USER_SECRET_KEY",
+   region_name='us-east-1',
+   endpoint_url = MTURK_SANDBOX
+)
+# You will need the following library
+# to help parse the XML answers supplied from MTurk
+# Install it in your local environment with
+# pip install xmltodict
+
+import xmltodict
+
+# Use the hit_id previously created
+
+hit_id = 'PASTE_IN_YOUR_HIT_ID'
+
+# We are only publishing this task to one Worker
+# So we will get back an array with one item if it has been completed
+
+worker_results = mturk.list_assignments_for_hit(HITId=hit_id, AssignmentStatuses=['Submitted'])
+
+if worker_results['NumResults'] > 0:
+   for assignment in worker_results['Assignments']:
+      xml_doc = xmltodict.parse(assignment['Answer'])
+      
+      print ("Worker's answer was:")
+      if type(xml_doc['QuestionFormAnswers']['Answer']) is list:
+         # Multiple fields in HIT layout
+         for answer_field in xml_doc['QuestionFormAnswers']['Answer']:
+            print ("For input field: " + answer_field['QuestionIdentifier'])
+            print ("Submitted answer: " + answer_field['FreeText'])
+      else:
+         # One field found in HIT layout
+         print ("For input field: " + xml_doc['QuestionFormAnswers']['Answer']['QuestionIdentifier'])
+         print ("Submitted answer: " + xml_doc['QuestionFormAnswers']['Answer']['FreeText'])
+else:
+   print ("No results ready yet")
